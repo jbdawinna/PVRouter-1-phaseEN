@@ -1,448 +1,444 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
+This program is designed to be used with the Arduino IDE and/or other development IDEs like VSCode + PlatformIO.
 
-Ce programme est conçu pour être utilisé avec l'IDE Arduino et/ou d'autres IDE de développement comme VSCode + PlatformIO.
+- [Use with Arduino IDE](#use-with-arduino-ide)
+  - [Required Libraries](#required-libraries)
+- [Use with Visual Studio Code](#use-with-visual-studio-code)
+- [Quick Overview of the Files](#quick-overview-of-the-files)
+- [Development Documentation](#development-documentation)
+- [Router Calibration](#router-calibration)
+- [Program Configuration](#program-configuration)
+  - [PCB Version Configuration](#pcb-version-configuration)
+  - [Serial Output Type](#serial-output-type)
+  - [Display Configuration](#display-configuration)
+  - [TRIAC Output Configuration](#triac-output-configuration)
+  - [On-Off Relay Output Configuration](#on-off-relay-output-configuration)
+    - [Operating Principle](#operating-principle)
+  - [Watchdog Configuration](#watchdog-configuration)
+  - [Temperature Sensor Configuration](#temperature-sensor-configuration)
+    - [Enabling the Feature](#enabling-the-feature)
+      - [With Arduino IDE](#with-arduino-ide)
+      - [With Visual Studio Code and PlatformIO](#with-visual-studio-code-and-platformio)
+    - [Sensor Configuration (common to both cases)](#sensor-configuration-common-to-both-cases)
+  - [Dual Tariff Configuration (Off-Peak Hours Management)](#dual-tariff-configuration-off-peak-hours-management)
+    - [Hardware Configuration](#hardware-configuration)
+    - [Software Configuration](#software-configuration)
+  - [Priority Rotation](#priority-rotation)
+  - [Forced Operation Configuration](#forced-operation-configuration)
+  - [Diversion Shutdown](#diversion-shutdown)
+- [Advanced Program Configuration](#advanced-program-configuration)
+  - [Parameter `DIVERSION_START_THRESHOLD_WATTS`](#parameter-diversion_start_threshold_watts)
+  - [Parameter `REQUIRED_EXPORT_IN_WATTS`](#parameter-required_export_in_watts)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
-- [Utilisation avec Arduino IDE](#utilisation-avec-arduino-ide)
-  - [Bibliothèques requises](#bibliothèques-requises)
-- [Utilisation avec Visual Studio Code](#utilisation-avec-visual-studio-code)
-- [Aperçu rapide des fichiers](#aperçu-rapide-des-fichiers)
-- [Documentation de développement](#documentation-de-développement)
-- [Étalonnage du routeur](#étalonnage-du-routeur)
-- [Configuration du programme](#configuration-du-programme)
-  - [Configuration de la version du PCB](#configuration-de-la-version-du-pcb)
-  - [Type de sortie série](#type-de-sortie-série)
-  - [Configuration de l'affichage](#configuration-de-laffichage)
-  - [Configuration des sorties TRIAC](#configuration-des-sorties-triac)
-  - [Configuration des sorties relais tout-ou-rien](#configuration-des-sorties-relais-tout-ou-rien)
-    - [Principe de fonctionnement](#principe-de-fonctionnement)
-  - [Configuration du Watchdog](#configuration-du-watchdog)
-  - [Configuration du ou des capteurs de température](#configuration-du-ou-des-capteurs-de-température)
-    - [Activation de la fonctionnalité](#activation-de-la-fonctionnalité)
-      - [Avec l'Arduino IDE](#avec-larduino-ide)
-      - [Avec Visual Studio Code et PlatformIO](#avec-visual-studio-code-et-platformio)
-    - [Configuration du ou des capteurs (commun aux 2 cas précédents)](#configuration-du-ou-des-capteurs-commun-aux-2-cas-précédents)
-  - [Configuration de la gestion des Heures Creuses (dual tariff)](#configuration-de-la-gestion-des-heures-creuses-dual-tariff)
-    - [Configuration matérielle](#configuration-matérielle)
-    - [Configuration logicielle](#configuration-logicielle)
-  - [Rotation des priorités](#rotation-des-priorités)
-  - [Configuration de la marche forcée](#configuration-de-la-marche-forcée)
-  - [Arrêt du routage](#arrêt-du-routage)
-- [Configuration avancée du programme](#configuration-avancée-du-programme)
-  - [Paramètre `DIVERSION_START_THRESHOLD_WATTS`](#paramètre-diversion_start_threshold_watts)
-  - [Paramètre `REQUIRED_EXPORT_IN_WATTS`](#paramètre-required_export_in_watts)
-- [Dépannage](#dépannage)
-- [Contribuer](#contribuer)
+# Use with Arduino IDE
 
-# Utilisation avec Arduino IDE
+To use this program with the Arduino IDE, you need to download and install the latest version of the Arduino IDE. Choose the "standard" version, NOT the Microsoft Store version. Opt for the "Win 10 and newer, 64 bits" or "MSI installer" version.
 
-Pour utiliser ce programme avec l'IDE Arduino, vous devez télécharger et installer la dernière version de l'IDE Arduino. Choisissez la version "standard", PAS la version du Microsoft Store. Optez pour la version "Win 10 et plus récent, 64 bits" ou la version "MSI installer".
+Since the code is optimized with one of the latest C++ standards, you need to modify a configuration file to enable C++17. You'll find the '**platform.txt**' file in the Arduino IDE installation path.
 
-Comme le code est optimisé avec l'une des dernières normes C++, vous devez modifier un fichier de configuration pour activer C++17. Vous trouverez le fichier '**platform.txt**' dans le chemin d'installation de l'IDE Arduino.
+For **Windows**, you'll typically find the file in '**C:\Program Files (x86)\Arduino\hardware\arduino\avr**' and/or in '**%LOCALAPPDATA%\Arduino15\packages\arduino\hardware\avr\x.y.z**' where '**x.y.z**' is the version of the Arduino AVR Boards package.
 
-Pour **Windows**, vous trouverez généralement le fichier dans '**C:\Program Files (x86)\Arduino\hardware\arduino\avr**' et/ou dans '**%LOCALAPPDATA%\Arduino15\packages\arduino\hardware\avr\x.y.z**' où **'x.y.z**' est la version du package Arduino AVR Boards.
+You can also run this command in Powershell: `Get-Childitem –Path C:\ -Include platform.txt -Recurse -ErrorAction SilentlyContinue`. It may take a few seconds/minutes until the file is found.
 
-Vous pouvez également exécuter cette commande dans Powershell : `Get-Childitem –Path C:\ -Include platform.txt -Recurse -ErrorAction SilentlyContinue`. Cela peut prendre quelques secondes/minutes jusqu'à ce que le fichier soit trouvé.
+For **Linux**, if using the AppImage package, you'll find this file in '~/.arduino15/packages/arduino/hardware/avr/1.8.6'. You can run `find / -name platform.txt 2>/dev/null` in case the location has changed.
 
-Pour **Linux**, si vous utilisez le package AppImage, vous trouverez ce fichier dans '~/.arduino15/packages/arduino/hardware/avr/1.8.6'. Vous pouvez exécuter `find / -name platform.txt 2>/dev/null` au cas où l'emplacement aurait changé.
+For **MacOSX**, this file is located in '/Users/[user]/Library/Arduino15/packages/arduino/hardware/avr/1.8.6'.
 
-Pour **MacOSX**, ce fichier se trouve dans '/Users/[user]/Library/Arduino15/packages/arduino/hardware/avr/1.8.6'.
+Open the file in any text editor (you'll need administrator rights) and replace the parameter '**-std=gnu++11**' with '**-std=gnu++17**'. That's it!
 
-Ouvrez le fichier dans n'importe quel éditeur de texte (vous aurez besoin des droits d'administrateur) et remplacez le paramètre '**-std=gnu++11**' par '**-std=gnu++17**'. C'est tout !
+If your Arduino IDE was open, please close all instances and reopen it.
 
-Si votre IDE Arduino était ouvert, veuillez fermer toutes les instances et le rouvrir.
+## Required Libraries
 
-## Bibliothèques requises
-
-Pour utiliser le projet, et selon la configuration du programme, vous aurez besoin des bibliothèques :
-- ArduinoJson : il faudra rester avec la version 6.*. La version 7 n'est pas appropriée pour l'Atmega328P (Arduino Uno).
+To use the project, and depending on the program configuration, you will need the following libraries:
+- ArduinoJson: you should stay with version 6.*. Version 7 is not suitable for the Atmega328P (Arduino Uno).
 - U8g2
 - OneWire
 
-# Utilisation avec Visual Studio Code
+# Use with Visual Studio Code
 
-Vous devrez installer des extensions supplémentaires. Les extensions les plus populaires et les plus utilisées pour ce travail sont '*Arduino*' et '*Platform IO*'.  
-L'ensemble du projet a été conçu pour être utilisé de façon optimale avec *Platform IO*.
+You'll need to install additional extensions. The most popular and used extensions for this job are '*Arduino*' and '*Platform IO*'.
+The entire project has been designed to be used optimally with *Platform IO*.
 
-# Aperçu rapide des fichiers
+# Quick Overview of the Files
 
-- **Mk2_fasterControl_Full.ino** : Ce fichier est nécessaire pour l’IDE Arduino
-- **calibration.h** : contient les paramètres d’étalonnage
-- **config.h** : les préférences de l’utilisateur sont stockées ici (affectation des broches, fonctionnalités …)
-- **config_system.h** : constantes système rarement modifiées
-- **constants.h** : quelques constantes — *ne pas modifier*
-- **debug.h** : Quelques macros pour la sortie série et le débogage
-- **dualtariff.h** : définitions de la fonction double tarif
-- **ewma_avg.h** : fonctions de calcul de moyenne EWMA modifiée
-- **main.cpp** : code source principal
-- **movingAvg.h** : code source pour la moyenne glissante
-- **processing.cpp** : code source du moteur de traitement
-- **processing.h** : prototypes de fonctions du moteur de traitement
-- **README.md** : ce fichier
-- **teleinfo.h**: code source de la fonctionnalité *Télémétrie IoT*
-- **types.h** : définitions des types …
-- **type_traits.h** : quelques trucs STL qui ne sont pas encore disponibles dans le paquet avr
-- **type_traits** : contient des patrons STL manquants
-- **utils_display.h** : code source de la fonctionnalité *afficheur 7-segments*
-- **utils_dualtariff.h** : code source de la fonctionnalité *gestion Heures Creuses*
-- **utils_oled.h** : code source de la fonctionnalité *afficheur OLED I2C*
-- **utils_pins.h** : quelques fonctions d'accès direct aux entrées/sorties du micro-contrôleur
-- **utils_relay.h** : code source de la fonctionnalité *diversion par relais*
-- **utils_temp.h** : code source de la fonctionnalité *Température*
-- **utils.h** : fonctions d’aide et trucs divers
-- **validation.h** : validation des paramètres, ce code n’est exécuté qu’au moment de la compilation !
-- **platformio.ini** : paramètres PlatformIO
-- **inject_sketch_name.py** : script d'aide pour PlatformIO
-- **Doxyfile** : paramètre pour Doxygen (documentation du code)
+- **Mk2_fasterControl_Full.ino** : This file is needed for Arduino IDE
+- **calibration.h** : contains the calibration parameters
+- **config.h** : the user's preferences are stored here (pin assignments, features, ...)
+- **config_system.h** : rarely modified system constants
+- **constants.h** : some constants — *do not edit*
+- **debug.h** : some macros for serial output and debugging
+- **dualtariff.h** : dual tariff function definitions
+- **ewma_avg.h** : modified EWMA average calculation functions
+- **main.cpp** : main source code
+- **movingAvg.h** : source code for moving average
+- **processing.cpp** : source code for the processing engine
+- **processing.h** : functions prototypes for the processing engine
+- **README.md** : this file
+- **teleinfo.h**: source code for *IoT Telemetry* feature
+- **types.h** : type definitions ...
+- **type_traits.h** : some STL stuff not yet available in the avr package
+- **type_traits** : contains missing STL templates
+- **utils_display.h** : source code for *7-segment display* feature
+- **utils_dualtariff.h** : source code for *Off-Peak Hours management* feature
+- **utils_oled.h** : source code for *OLED I2C display* feature
+- **utils_pins.h** : some functions for direct access to microcontroller inputs/outputs
+- **utils_relay.h** : source code for *relay diversion* feature
+- **utils_temp.h** : source code for *Temperature* feature
+- **utils.h** : helper functions and miscellaneous stuff
+- **validation.h** : parameter validation, this code is only executed at compile time!
+- **platformio.ini** : PlatformIO settings
+- **inject_sketch_name.py** : helper script for PlatformIO
+- **Doxyfile** : parameter for Doxygen (code documentation)
 
-L’utilisateur final ne doit éditer QUE les fichiers **calibration.h** et **config.h**.
+The end-user should ONLY edit the **calibration.h** and **config.h** files.
 
-# Documentation de développement
+# Development Documentation
 
-Vous pouvez commencer à lire la documentation ici [1-phase routeur](https://fredm67.github.io/PVRouter-1-phase/) (en anglais).
+You can start reading the documentation here [1-phase router](https://fredm67.github.io/PVRouter-1-phase/) (in English).
 
-# Étalonnage du routeur
-Les valeurs d'étalonnage se trouvent dans le fichier **calibration.h**.
-Il s'agit des lignes :
+# Router Calibration
+The calibration values are found in the **calibration.h** file.
+These are the lines:
 ```cpp
 inline constexpr float powerCal_grid{ 0.0435f };
 inline constexpr float powerCal_diverted{ 0.0435f };
 ```
 
-Ces valeurs par défaut n'entrent pas en jeux dans le fonctionnement du routeur.
+These default values do not affect the router's operation.
 
-Par contre elles doivent être déterminées précisément si on souhaite avoir un affichage cohérent avec la réalité.
+However, they must be determined precisely if you want to have a display consistent with reality.
 
-# Configuration du programme
+# Program Configuration
 
-La configuration d'une fonctionnalité suit généralement deux étapes :
-- Activation de la fonctionnalité
-- Configuration des paramètres de la fonctionnalité
+Configuring a feature generally follows two steps:
+- Enabling the feature
+- Configuring the feature's parameters
 
-La cohérence de la configuration est vérifiée lors de la compilation. Par exemple, si une *pin* est allouée deux fois par erreur, le compilateur générera une erreur.
+Configuration consistency is checked during compilation. For example, if a *pin* is allocated twice by mistake, the compiler will generate an error.
 
-## Configuration de la version du PCB
+## PCB Version Configuration
 
-Le routeur existe en deux versions de PCB (circuit imprimé), qui utilisent des broches analogiques différentes pour les capteurs de tension et de courant. Il est important de configurer correctement cette option selon la version du PCB que vous possédez.
+The router exists in two PCB (printed circuit board) versions, which use different analog pins for voltage and current sensors. It is important to configure this option correctly according to the PCB version you have.
 
-Pour activer l'ancien PCB (par défaut) :
+To enable the old PCB (default):
 ```cpp
 inline constexpr bool OLD_PCB{ true };
 ```
 
-Pour utiliser le nouveau PCB :
+To use the new PCB:
 ```cpp
 inline constexpr bool OLD_PCB{ false };
 ```
 
-Cette configuration modifie automatiquement l'affectation des broches analogiques :
-- **Ancien PCB** : capteur de tension sur A3, CT1 (réseau) sur A5, CT2 (déviation) sur A4
-- **Nouveau PCB** : capteur de tension sur A0, CT1 (réseau) sur A1, CT2 (déviation) sur A3
+This configuration automatically modifies the analog pin assignments:
+- **Old PCB** : voltage sensor on A3, CT1 (grid) on A5, CT2 (diversion) on A4
+- **New PCB** : voltage sensor on A0, CT1 (grid) on A1, CT2 (diversion) on A3
 
 ---
 > [!WARNING]
-> Une mauvaise configuration de ce paramètre empêchera le routeur de fonctionner correctement, car les capteurs ne seront pas lus sur les bonnes broches analogiques.
+> Incorrect configuration of this parameter will prevent the router from functioning correctly, as the sensors will not be read on the correct analog pins.
 ---
 
 ---
 > [!IMPORTANT]
-> **Utilisateurs de PCB triphasé en mode monophasé** : Si vous utilisez un PCB triphasé en mode monophasé (par exemple, si vous avez changé votre raccordement de triphasé à monophasé), vous **devez** configurer `OLD_PCB` sur `false`. Cela garantit que les bonnes broches analogiques sont utilisées pour les capteurs.
+> **Users with 3-phase PCB in single-phase mode**: If you are using a 3-phase PCB in single-phase mode (for example, if you changed your grid connection from 3-phase to single-phase), you **must** set `OLD_PCB` to `false`. This ensures that the correct analog pins are used for the sensors.
 ---
 
-## Type de sortie série
+## Serial Output Type
 
-Le type de sortie série peut être configuré pour s'adapter à différents besoins. Trois options sont disponibles :
+The serial output type can be configured to suit different needs. Three options are available:
 
-- **HumanReadable** : Sortie lisible par un humain, idéale pour le débogage ou la mise en service.
-- **IoT** : Sortie formatée pour des plateformes IoT comme HomeAssistant.
-- **JSON** : Sortie formatée pour les plateformes comme EmonCMS (JSON).
+- **HumanReadable** : Human-readable output, ideal for debugging or commissioning.
+- **IoT** : Output formatted for IoT platforms like HomeAssistant.
+- **JSON** : Output formatted for platforms like EmonCMS (JSON).
 
-Pour configurer le type de sortie série, modifiez la constante suivante dans le fichier **config.h** :
+To configure the serial output type, modify the following constant in the **config.h** file:
 ```cpp
 inline constexpr SerialOutputType SERIAL_OUTPUT_TYPE = SerialOutputType::HumanReadable;
 ```
-Remplacez `HumanReadable` par `IoT` ou `JSON` selon vos besoins.
+Replace `HumanReadable` with `IoT` or `JSON` according to your needs.
 
-## Configuration de l'affichage
+## Display Configuration
 
-Configurez le type d'affichage dans `config.h` :
+Configure the display type in `config.h`:
 ```cpp
 inline constexpr DisplayType TYPE_OF_DISPLAY{ DisplayType::NONE };
 ```
 
-Les options possibles sont :
-- **DisplayType::NONE** : Aucun affichage n'est utilisé.
-- **DisplayType::OLED** : Utilise un écran OLED pour afficher les informations.
-- **DisplayType::SEG** : Utilise un afficheur à segments pour afficher les informations.
-- **DisplayType::SEG_HW** : Utilise un afficheur à segments avec une interface matérielle spécifique pour afficher les informations (présence des circuits **IC3** et **IC4**).
+Possible options are:
+- **DisplayType::NONE** : No display is used.
+- **DisplayType::OLED** : Uses an OLED screen to display information.
+- **DisplayType::SEG** : Uses a segment display to display information.
+- **DisplayType::SEG_HW** : Uses a segment display with specific hardware interface to display information (presence of **IC3** and **IC4** circuits).
 
 ---
 > [!NOTE]
-> L'affichage OLED n'est pas encore disponible. Il nécessite une nouvelle version du PCB qui sera disponible prochainement.
+> The OLED display is not yet available. It requires a new PCB version that will be available soon.
 ---
 
-## Configuration des sorties TRIAC
+## TRIAC Output Configuration
 
-La première étape consiste à définir le nombre de sorties TRIAC :
+The first step is to define the number of TRIAC outputs:
 
 ```cpp
 inline constexpr uint8_t NO_OF_DUMPLOADS{ 2 };
 ```
 
-Ensuite, il faudra assigner les *pins* correspondantes ainsi que l'ordre des priorités au démarrage.
+Then, you need to assign the corresponding *pins* as well as the priority order at startup.
 ```cpp
 inline constexpr uint8_t physicalLoadPin[NO_OF_DUMPLOADS]{ 5, 7 };
 inline constexpr uint8_t loadPrioritiesAtStartup[NO_OF_DUMPLOADS]{ 0, 1 };
 ```
 
-## Configuration des sorties relais tout-ou-rien
-Les sorties relais tout-ou-rien permettent d'alimenter des appareils qui contiennent de l'électronique (pompe à chaleur …).
+## On-Off Relay Output Configuration
+On-off relay outputs allow powering devices that contain electronics (heat pump, etc.).
 
-Il faudra activer la fonctionnalité comme ceci :
+You need to enable the feature like this:
 ```cpp
 inline constexpr bool RELAY_DIVERSION{ true };
 ```
 
-Chaque relais nécessite la définition de cinq paramètres :
-- le numéro de **pin** sur laquelle est branché le relais
-- le **seuil de surplus** avant mise en route (par défaut **1000 W**)
-- le **seuil d'import** avant arrêt (par défaut **200 W**)
-- la **durée de fonctionnement minimale** en minutes (par défaut **5 min**)
-- la **durée d'arrêt minimale** en minutes (par défaut **5 min**).
+Each relay requires the definition of five parameters:
+- the **pin** number to which the relay is connected
+- the **surplus threshold** before starting (default **1000 W**)
+- the **import threshold** before stopping (default **200 W**)
+- the **minimum operating duration** in minutes (default **5 min**)
+- the **minimum stop duration** in minutes (default **5 min**).
 
-Exemple de configuration d'un relais :
+Example relay configuration:
 ```cpp
 inline constexpr RelayEngine relays{ { { 4, 1000, 200, 10, 10 } } };
 ```
-Dans cet exemple, le relais est connecté sur la *pin* **4**, il se déclenchera à partir de **1000 W** de surplus, s'arrêtera à partir de **200 W** d'import, et a une durée minimale de fonctionnement et d'arrêt de **10 min**.
+In this example, the relay is connected to *pin* **4**, it will trigger from **1000 W** surplus, stop from **200 W** import, and has a minimum operating and stop duration of **10 min**.
 
-Pour configurer plusieurs relais, listez simplement les configurations de chaque relais :
+To configure multiple relays, simply list each relay's configuration:
 ```cpp
 inline constexpr RelayEngine relays{ { { 4, 1000, 200, 10, 10 },
                                        { 3, 1500, 250, 5, 15 } } };
 ```
-Les relais sont activés dans l'ordre de la liste, et désactivés dans l'ordre inverse.  
-Dans tous les cas, les durées minimales de fonctionnement et d'arrêt sont toujours respectées.
+Relays are activated in list order and deactivated in reverse order.
+In all cases, minimum operating and stop durations are always respected.
 
-### Principe de fonctionnement
-Les seuils de surplus et d'import sont calculés en utilisant une moyenne mobile pondérée exponentiellement (EWMA), dans notre cas précis, il s'agit d'une modification d'une moyenne mobile triple exponentiellement pondérée (TEMA).  
-Par défaut, cette moyenne est calculée sur une fenêtre d'environ **10 min**. Vous pouvez ajuster cette durée pour l'adapter à vos besoins.  
-Il est possible de la rallonger mais aussi de la raccourcir.  
-Pour des raisons de performances de l'Arduino, la durée choisie sera arrondie à une durée proche qui permettra de faire les calculs sans impacter les performances du routeur.
+### Operating Principle
+Surplus and import thresholds are calculated using an exponentially weighted moving average (EWMA), in our specific case, it's a modification of a triple exponentially weighted moving average (TEMA).
+By default, this average is calculated over a window of about **10 min**. You can adjust this duration to suit your needs.
+It's possible to lengthen it but also to shorten it.
+For Arduino performance reasons, the chosen duration will be rounded to a nearby duration that will allow calculations without impacting router performance.
 
-Si l'utilisateur souhaite plutôt une fenêtre de 15 min, il suffira d'écrire :
+If the user prefers a 15 min window, just write:
 ```cpp
 inline constexpr RelayEngine relays{ 15_i, { { 3, 1000, 200, 1, 1 } } };
 ```
 ___
 > [!NOTE]
-> Attention au suffixe '**_i**' après le nombre *15* !
+> Pay attention to the '**_i**' suffix after the number *15*!
 ___
 
-Les relais configurés dans le système sont gérés par un système similaire à une machine à états.
-Chaque seconde, le système augmente la durée de l'état actuel de chaque relais et procède avec tous les relais en fonction de la puissance moyenne actuelle :
-- si la puissance moyenne actuelle est supérieure au seuil d'import, elle essaie d'éteindre certains relais.
-- si la puissance moyenne actuelle est supérieure au seuil de surplus, elle essaie d'allumer plus de relais.
+The relays configured in the system are managed by a system similar to a state machine.
+Every second, the system increases the duration of the current state of each relay and proceeds with all relays based on the current average power:
+- if the current average power is above the import threshold, it tries to turn off some relays.
+- if the current average power is above the surplus threshold, it tries to turn on more relays.
 
-Les relais sont traités dans l'ordre croissant pour le surplus et dans l'ordre décroissant pour l'importation.
+Relays are processed in ascending order for surplus and in descending order for import.
 
-Pour chaque relais, la transition ou le changement d'état est géré de la manière suivante :
-- si le relais est *OFF* et que la puissance moyenne actuelle est inférieure au seuil de surplus, le relais essaie de passer à l'état *ON*. Cette transition est soumise à la condition que le relais ait été *OFF* pendant au moins la durée *minOFF*.
-- si le relais est *ON* et que la puissance moyenne actuelle est supérieure au seuil d'importation, le relais essaie de passer à l'état *OFF*. Cette transition est soumise à la condition que le relais ait été *ON* pendant au moins la durée *minON*.
+For each relay, the transition or state change is managed as follows:
+- if the relay is *OFF* and the current average power is below the surplus threshold, the relay tries to switch to *ON* state. This transition is subject to the condition that the relay has been *OFF* for at least the *minOFF* duration.
+- if the relay is *ON* and the current average power is above the import threshold, the relay tries to switch to *OFF* state. This transition is subject to the condition that the relay has been *ON* for at least the *minON* duration.
 
-## Configuration du Watchdog
-Un chien de garde, en anglais *watchdog*, est un circuit électronique ou un logiciel utilisé en électronique numérique pour s'assurer qu'un automate ou un ordinateur ne reste pas bloqué à une étape particulière du traitement qu'il effectue.
+## Watchdog Configuration
+A watchdog is an electronic circuit or software used in digital electronics to ensure that an automaton or computer does not remain stuck at a particular stage of the processing it is performing.
 
-Ceci est réalisé à l'aide d'une LED qui clignote à la fréquence de 1 Hz, soit toutes les secondes.  
-Ainsi, l'utilisateur sait d'une part si son routeur est allumé, et si jamais cette LED ne clignote plus, c'est que l'Arduino s'est bloqué (cas encore jamais rencontré !).  
-Un simple appui sur le bouton *Reset* permettra de redémarrage le système sans rien débrancher.
+This is accomplished using an LED that blinks at a frequency of 1 Hz, or every second.
+Thus, the user knows on one hand if their router is powered on, and if this LED stops blinking, it means the Arduino has frozen (a case never encountered yet!).
+A simple press of the *Reset* button will restart the system without unplugging anything.
 
-Il faudra activer la fonctionnalité comme ceci :
+You need to enable the feature like this:
 ```cpp
 inline constexpr bool WATCHDOG_PIN_PRESENT{ true };
 ```
-et définir la *pin* utilisée, dans l'exemple la *9* :
+and define the *pin* used, in the example *9*:
 ```cpp
 inline constexpr uint8_t watchDogPin{ 9 };
 ```
 
-## Configuration du ou des capteurs de température
-Il est possible de brancher un ou plusieurs capteurs de température Dallas DS18B20.  
-Ces capteurs peuvent servir à des fins informatives ou pour contrôler le mode de fonctionnement forcé.
+## Temperature Sensor Configuration
+It's possible to connect one or more Dallas DS18B20 temperature sensors.
+These sensors can be used for informational purposes or to control forced operation mode.
 
-Pour activer cette fonctionnalité, il faudra procéder différemment selon que l'on utilise l'Arduino IDE ou Visual Studio Code avec l'extension PlatformIO.
+To enable this feature, the procedure differs depending on whether you use the Arduino IDE or Visual Studio Code with the PlatformIO extension.
 
-### Activation de la fonctionnalité
+### Enabling the Feature
 
-Pour activer cette fonctionnalité, la procédure diffère selon que vous utilisez l'Arduino IDE ou Visual Studio Code avec l'extension PlatformIO.
+To enable this feature, the procedure differs depending on whether you use the Arduino IDE or Visual Studio Code with the PlatformIO extension.
 
-#### Avec l'Arduino IDE
-Activez la ligne suivante en supprimant le commentaire :
+#### With Arduino IDE
+Enable the following line by removing the comment:
 ```cpp
 #define TEMP_ENABLED
 ```
 
-Si la bibliothèque *OneWire* n'est pas installée, installez-la via le menu **Outils** => **Gérer les bibliothèques…**.  
-Recherchez "Onewire" et installez "**OneWire** par Jim Studt, …" en version **2.3.7** ou plus récente.
+If the *OneWire* library is not installed, install it via the **Tools** => **Manage Libraries...** menu.
+Search for "Onewire" and install "**OneWire** by Jim Studt, ..." version **2.3.7** or newer.
 
-#### Avec Visual Studio Code et PlatformIO
-Sélectionnez la configuration "**env:temperature (Mk2_3phase_RFdatalog_temp)**".
+#### With Visual Studio Code and PlatformIO
+Select the "**env:temperature (Mk2_3phase_RFdatalog_temp)**" configuration.
 
-### Configuration du ou des capteurs (commun aux 2 cas précédents)
-Pour configurer les capteurs, vous devez entrer leurs adresses.  
-Utilisez un programme pour scanner les capteurs connectés.  
-Vous pouvez trouver de tels programmes sur Internet ou parmi les exemples fournis avec l'Arduino IDE.  
-Il est recommandé de coller une étiquette avec l'adresse de chaque capteur sur son câble.
+### Sensor Configuration (common to both cases)
+To configure the sensors, you need to enter their addresses.
+Use a program to scan the connected sensors.
+You can find such programs on the Internet or among the examples provided with the Arduino IDE.
+It's recommended to stick a label with each sensor's address on its cable.
 
-Entrez les adresses comme suit :
+Enter the addresses as follows:
 ```cpp
 inline constexpr TemperatureSensing temperatureSensing{ 4,
                                                         { { 0x28, 0xBE, 0x41, 0x6B, 0x09, 0x00, 0x00, 0xA4 },
                                                           { 0x28, 0x1B, 0xD7, 0x6A, 0x09, 0x00, 0x00, 0xB7 } } };
 ```
-Le nombre *4* en premier paramètre est la *pin* que l'utilisateur aura choisi pour le bus *OneWire*.
+The number *4* as the first parameter is the *pin* that the user will have chosen for the *OneWire* bus.
 
 ___
 > [!NOTE]
-> Plusieurs capteurs peuvent être branchés sur le même câble.  
-> Sur Internet vous trouverez tous les détails concernant la topologie utilisable avec ce genre de capteurs.
+> Multiple sensors can be connected on the same cable.
+> On the Internet you'll find all the details regarding the topology usable with this type of sensor.
 ___
 
-## Configuration de la gestion des Heures Creuses (dual tariff)
-Il est possible de confier la gestion des Heures Creuses au routeur.  
-Cela permet par exemple de limiter la chauffe en marche forcée afin de ne pas trop chauffer l'eau dans l'optique d'utiliser le surplus le lendemain matin.  
-Cette limite peut être en durée ou en température (nécessite d'utiliser un capteur de température Dallas DS18B20).
+## Dual Tariff Configuration (Off-Peak Hours Management)
+It's possible to entrust off-peak hours management to the router.
+This allows, for example, limiting forced heating to avoid heating water too much with the goal of using surplus the next morning.
+This limit can be in duration or temperature (requires using a Dallas DS18B20 temperature sensor).
 
-### Configuration matérielle
-Décâblez la commande du contacteur Jour/Nuit, qui n'est plus nécessaire.  
-Reliez directement une *pin* choisie au contact sec du compteur (bornes *C1* et *C2*).
+### Hardware Configuration
+Disconnect the Day/Night contactor control, which is no longer necessary.
+Connect directly a chosen *pin* to the meter's dry contact (*C1* and *C2* terminals).
 ___
 > [!WARNING]
-> Il faut relier **directement**, une paire *pin/masse* avec les bornes *C1/C2* du compteur.  
-> Il NE doit PAS y avoir de 230 V sur ce circuit !
+> You must connect **directly**, a *pin/ground* pair with the meter's *C1/C2* terminals.
+> There must NOT be 230 V on this circuit!
 ___
 
-### Configuration logicielle
-Activez la fonctionnalité comme suit :
+### Software Configuration
+Enable the feature as follows:
 ```cpp
 inline constexpr bool DUAL_TARIFF{ true };
 ```
-Configurez la *pin* sur laquelle est relié le compteur :
+Configure the *pin* to which the meter is connected:
 ```cpp
 inline constexpr uint8_t dualTariffPin{ 3 };
 ```
 
-Configurez la durée en *heures* de la période d'Heures Creuses (pour l'instant, une seule période est supportée par jour) :
+Configure the duration in *hours* of the off-peak period (for now, only one period per day is supported):
 ```cpp
 inline constexpr uint8_t ul_OFF_PEAK_DURATION{ 8 };
 ```
 
-Enfin, on définira les modalités de fonctionnement pendant la période d'Heures Creuses :
+Finally, define the operating modalities during the off-peak period:
 ```cpp
 inline constexpr pairForceLoad rg_ForceLoad[NO_OF_DUMPLOADS]{ { -3, 2 } };
 ```
-Il est possible de définir une configuration pour chaque charge indépendamment l'une des autres.
-Le premier paramètre de *rg_ForceLoad* détermine la temporisation de démarrage par rapport au début ou à la fin des Heures Creuses :
-- si le nombre est positif et inférieur à 24, il s'agit du nombre d'heures,
-- si le nombre est négatif supérieur à −24, il s'agit du nombre d'heures par rapport à la fin des Heures Creuses
-- si le nombre est positif et supérieur à 24, il s'agit du nombre de minutes,
-- si le nombre est négatif inférieur à −24, il s'agit du nombre de minutes par rapport à la fin des Heures Creuses
+It's possible to define a configuration for each load independently of the others.
+The first parameter of *rg_ForceLoad* determines the start delay relative to the beginning or end of off-peak hours:
+- if the number is positive and less than 24, it's the number of hours,
+- if the number is negative greater than −24, it's the number of hours relative to the end of off-peak hours
+- if the number is positive and greater than 24, it's the number of minutes,
+- if the number is negative less than −24, it's the number of minutes relative to the end of off-peak hours
 
-Le deuxième paramètre détermine la durée de la marche forcée :
-- si le nombre est inférieur à 24, il s'agit du nombre d'heures,
-- si le nombre est supérieur à 24, il s'agit du nombre de minutes.
+The second parameter determines the forced operation duration:
+- if the number is less than 24, it's the number of hours,
+- if the number is greater than 24, it's the number of minutes.
 
-Exemples pour mieux comprendre (avec début d'HC à 23:00, jusqu'à 7:00 soit 8 h de durée) :
-- ```{ -3, 2 }``` : démarrage **3 heures AVANT** la fin de période (à 4 h du matin), pour une durée de 2 h.
-- ```{ 3, 2 }``` : démarrage **3 heures APRÈS** le début de période (à 2 h du matin), pour une durée de 2 h.
-- ```{ -150, 2 }``` : démarrage **150 minutes AVANT** la fin de période (à 4:30), pour une durée de 2 h.
-- ```{ 3, 180 }``` : démarrage **3 heures APRÈS** le début de période (à 2 h du matin), pour une durée de 180 min.
+Examples for better understanding (with off-peak start at 23:00, until 7:00 i.e. 8 h duration):
+- ```{ -3, 2 }``` : start **3 hours BEFORE** the end of period (at 4 am), for a duration of 2 h.
+- ```{ 3, 2 }``` : start **3 hours AFTER** the beginning of period (at 2 am), for a duration of 2 h.
+- ```{ -150, 2 }``` : start **150 minutes BEFORE** the end of period (at 4:30), for a duration of 2 h.
+- ```{ 3, 180 }``` : start **3 hours AFTER** the beginning of period (at 2 am), for a duration of 180 min.
 
-Pour une durée *infinie* (donc jusqu'à la fin de la période d'HC), utilisez ```UINT16_MAX``` comme deuxième paramètre :
-- ```{ -3, UINT16_MAX }``` : démarrage **3 heures AVANT** la fin de période (à 4 h du matin) avec marche forcée jusqu'à la fin de période d'HC.
+For *infinite* duration (therefore until the end of the off-peak period), use ```UINT16_MAX``` as the second parameter:
+- ```{ -3, UINT16_MAX }``` : start **3 hours BEFORE** the end of period (at 4 am) with forced operation until the end of off-peak period.
 
-Si votre système est constitué 2 sorties (```NO_OF_DUMPLOADS``` aura alors une valeur de 2), et que vous souhaitez une marche forcée uniquement sur la 2ᵉ sortie, écrivez :
+If your system consists of 2 outputs (```NO_OF_DUMPLOADS``` will then have a value of 2), and you only want forced operation on the 2nd output, write:
 ```cpp
 inline constexpr pairForceLoad rg_ForceLoad[NO_OF_DUMPLOADS]{ { 0, 0 },
                                                               { -3, 2 } };
 ```
 
-## Rotation des priorités
-La rotation des priorités est utile lors de l'alimentation d'un chauffe-eau triphasé.  
-Elle permet d'équilibrer la durée de fonctionnement des différentes résistances sur une période prolongée.
+## Priority Rotation
+Priority rotation is useful when powering a three-phase water heater.
+It allows balancing the operating duration of different heating elements over an extended period.
 
-Mais elle peut aussi être intéressante si on veut permuter les priorités de deux appareils chaque jour (deux chauffe-eau, …).
+But it can also be interesting if you want to swap the priorities of two devices each day (two water heaters, etc.).
 
-Une fois n'est pas coutume, l'activation de cette fonction possède 2 modes :
-- **automatique**, on spécifiera alors
+Once again, enabling this function has 2 modes:
+- **automatic**, specify:
 ```cpp
 inline constexpr RotationModes PRIORITY_ROTATION{ RotationModes::AUTO };
 ```
-- **manuel**, on écrira alors
+- **manual**, then write:
 ```cpp
 inline constexpr RotationModes PRIORITY_ROTATION{ RotationModes::PIN };
 ```
-En mode **automatique**, la rotation se fait automatiquement toutes les 24 h.  
-Em mode **manuel**, vous devez également définir la *pin* qui déclenchera la rotation :
+In **automatic** mode, rotation happens automatically every 24 hours.
+In **manual** mode, you must also define the *pin* that will trigger rotation:
 ```cpp
 inline constexpr uint8_t rotationPin{ 10 };
 ```
 
-## Configuration de la marche forcée
-Il est possible de déclencher la marche forcée (certains routeurs appellent cette fonction *Boost*) via une *pin*.  
-On peut y relier un micro-interrupteur, une minuterie (ATTENTION, PAS de 230 V sur cette ligne), ou tout autre contact sec.
+## Forced Operation Configuration
+It's possible to trigger forced operation (some routers call this function *Boost*) via a *pin*.
+You can connect a micro-switch, a timer (WARNING, NO 230 V on this line), or any other dry contact.
 
-Pour activer cette fonctionnalité, utilisez le code suivant :
+To enable this feature, use the following code:
 ```cpp
 inline constexpr bool OVERRIDE_PIN_PRESENT{ true };
 ```
-Vous devez également spécifier la *pin* à laquelle le contact sec est connecté :
+You must also specify the *pin* to which the dry contact is connected:
 ```cpp
 inline constexpr uint8_t forcePin{ 11 };
 ```
 
-## Arrêt du routage
-Il peut être pratique de désactiver le routage lors d'une absence prolongée.  
-Cette fonctionnalité est particulièrement utile si la *pin* de commande est connectée à un contact sec qui peut être contrôlé à distance, par exemple via une routine Alexa ou similaire.  
-Ainsi, vous pouvez désactiver le routage pendant votre absence et le réactiver un ou deux jours avant votre retour, afin de disposer d'eau chaude (gratuite) à votre arrivée.
+## Diversion Shutdown
+It can be convenient to disable routing during a prolonged absence.
+This feature is particularly useful if the control *pin* is connected to a dry contact that can be remotely controlled, for example via an Alexa routine or similar.
+Thus, you can disable routing during your absence and reactivate it one or two days before your return, to have hot water (free) available upon arrival.
 
-Pour activer cette fonctionnalité, utilisez le code suivant :
+To enable this feature, use the following code:
 ```cpp
 inline constexpr bool DIVERSION_PIN_PRESENT{ true };
 ```
-Vous devez également spécifier la *pin* à laquelle le contact sec est connecté :
+You must also specify the *pin* to which the dry contact is connected:
 ```cpp
 inline constexpr uint8_t diversionPin{ 12 };
 ```
 
-# Configuration avancée du programme
+# Advanced Program Configuration
 
-Ces paramètres se trouvent dans le fichier `config_system.h`.
+These parameters are found in the `config_system.h` file.
 
-## Paramètre `DIVERSION_START_THRESHOLD_WATTS`
-Le paramètre `DIVERSION_START_THRESHOLD_WATTS` définit un seuil de surplus avant tout routage vers les charges configurées sur le routeur. Elle est principalement destinée aux installations avec batteries de stockage.   
-Par défaut, cette valeur est réglée à 0 W.  
-En réglant ce paramètre à 50 W par exemple, le routeur ne démarrera le routage qu'à partir du moment où 50 W de surplus sera disponible. Une fois le routage démarré, la totalité du surplus sera routé.  
-Cette fonctionnalité permet d'établir une hiérarchie claire dans l'utilisation de l'énergie produite, en privilégiant le stockage d'énergie sur la consommation immédiate. Vous pouvez ajuster cette valeur selon la réactivité du système de charge des batteries et vos priorités d'utilisation de l'énergie.
-
-> [!IMPORTANT]
-> Ce paramètre concerne uniquement la condition de démarrage du routage.
-> Une fois le seuil atteint et le routage démarré, la **totalité** du surplus devient disponible pour les charges.
-
-## Paramètre `REQUIRED_EXPORT_IN_WATTS`
-Le paramètre `REQUIRED_EXPORT_IN_WATTS` détermine la quantité minimale d'énergie que le système doit réserver pour l'exportation ou l'importation vers le réseau électrique avant de dévier le surplus vers les charges contrôlées.  
-Par défaut réglé à 0 W, ce paramètre peut être utilisé pour garantir une exportation constante vers le réseau, par exemple pour respecter des accords de revente d'électricité.  
-Une valeur négative obligera le routeur à consommer cette puissance depuis le réseau. Cela peut être utile voire nécessaire pour les installations configurées en *zéro injection* afin d'amorcer la production solaire.
+## Parameter `DIVERSION_START_THRESHOLD_WATTS`
+The `DIVERSION_START_THRESHOLD_WATTS` parameter defines a surplus threshold before any routing to the loads configured on the router. It's primarily intended for installations with storage batteries.
+By default, this value is set to 0 W.
+By setting this parameter to 50 W for example, the router will only start routing when 50 W surplus is available. Once routing has started, all surplus will be routed.
+This feature allows establishing a clear hierarchy in the use of produced energy, favoring energy storage over immediate consumption. You can adjust this value according to battery charging system responsiveness and your energy use priorities.
 
 > [!IMPORTANT]
-> Contrairement au premier paramètre, celui-ci représente un décalage permanent qui est continuellement soustrait du surplus disponible.
-> Si réglé à 20 W par exemple, le système réservera **toujours** 20 W pour l'exportation, indépendamment des autres conditions.
+> This parameter only concerns the routing start condition.
+> Once the threshold is reached and routing has started, **all** surplus becomes available for loads.
 
-# Dépannage
-- Assurez-vous que toutes les bibliothèques requises sont installées.
-- Vérifiez la configuration correcte des pins et des paramètres.
-- Consultez la sortie série pour les messages d'erreur.
+## Parameter `REQUIRED_EXPORT_IN_WATTS`
+The `REQUIRED_EXPORT_IN_WATTS` parameter determines the minimum amount of energy the system must reserve for export or import to the electrical grid before diverting surplus to controlled loads.
+By default set to 0 W, this parameter can be used to guarantee constant export to the grid, for example to comply with electricity resale agreements.
+A negative value will force the router to consume this power from the grid. This can be useful or even necessary for installations configured in *zero injection* to prime solar production.
 
-# Contribuer
-Les contributions sont les bienvenues ! Veuillez soumettre des problèmes, des demandes de fonctionnalités et des pull requests via GitHub.
+> [!IMPORTANT]
+> Unlike the first parameter, this one represents a permanent offset that is continuously subtracted from available surplus.
+> If set to 20 W for example, the system will **always** reserve 20 W for export, regardless of other conditions.
 
-*doc non finie*
+# Troubleshooting
+- Ensure all required libraries are installed.
+- Verify correct configuration of pins and parameters.
+- Check the serial output for error messages.
+
+# Contributing
+Contributions are welcome! Please submit issues, feature requests, and pull requests via GitHub.
